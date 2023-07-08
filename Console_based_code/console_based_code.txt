@@ -1,0 +1,536 @@
+
+#include<iostream>
+#include<fstream>
+#include<string>
+using namespace std;
+
+ifstream read;
+ofstream write;
+int V;
+
+struct MarqueeData 
+{
+    int price;
+    string location;
+    string marqueeName;
+    int perheadPrice;
+    string discount;
+};
+
+struct Node
+{
+    MarqueeData obj;
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+    Node* head = NULL;
+    Node* next = NULL;
+    int data;
+};
+
+int max(int, int);
+int height(Node*);
+Node* newNode(int);
+Node rightRotate(Node);
+Node leftRotate(Node);
+int getBalance(Node*);
+Node* insert(Node*, int);
+void inOrder(Node*);
+void inputMarqueeObj(MarqueeData&);
+Node* searchByKey(Node*, int);
+void searchByPriceRange(Node*, int);
+void searchByLocation(Node*, string);
+void MarqueeDisplay(MarqueeData);
+void shortest_distance();
+int MIN(int distance[], bool visited[]);
+int FOR_NODES();
+string places();
+void PRINT(int distance[]);
+void DIJKSTRA_ALGO(int S, int total_vertices, int graph[][8]);
+void shortest_distance();
+void L();
+
+int main()
+{
+    Node* root = NULL;
+    Node* temp = NULL;
+    int choice;
+    string location;
+    do 
+    {
+        cout << " \n\n ===================================MAIN MENU===================================" << endl;
+        cout << " 1:- Enter Marquee Data " << endl;
+        cout << " 2:- Search By Key " << endl;
+        cout << " 3:- PRICE RANGE FILTERS" << endl;
+        cout << " 4:- LOCATION BASED Marquee " << endl;
+        cout << " 5:- COMPLETE DETAILS OF MARQUEE " << endl;
+        cout << " 6:- PER HEAD BILL CALCULATIONS " << endl;
+        cout << " 7:- Shortest distance from location " << endl;
+        cout << " ===============================================================================" << endl;
+        cout << " Please Select the Choice " << endl;
+        cin >> choice;
+        switch (choice)
+        {
+        case 1:
+            write.open("Marquee_Info.txt", ios::app);
+            cout << " Enter Unique Id : " << endl;
+            cin >> choice;
+            write << choice <<" ";
+            write.close();
+            root = insert(root, choice);
+            break;
+        case 2:
+            cout << " Enter The Key Marquee That You want to search " << endl;
+            cin >> choice;
+            temp = searchByKey(root, choice);
+            if (temp) 
+                MarqueeDisplay(temp->obj);
+            else 
+                cout << "No Data Found" << endl;
+            break;
+        case 3:
+            cout << " Enter The Price Range That You want to search " << endl;
+            cin >> choice;
+            searchByPriceRange(root, choice);
+            break;
+        case 4:
+            cout << " Enter The Location That You want to search " << endl;
+            cin >> location;
+            searchByLocation(root, location);
+            break;
+        case 5:
+            inOrder(root);
+            break;
+        case 6:
+            cout << " Enter The Key Marquee That You want to search " << endl;
+            cin >> choice;
+            temp = searchByKey(root, choice);
+            if (temp) 
+            {
+                MarqueeDisplay(temp->obj);
+                cout << "Enter the Number Of Guests " << endl;
+                cin >> choice;
+                cout << "Per Head Bill Calculation is :- " << choice * temp->obj.perheadPrice << endl;
+            }
+            else 
+            {
+                cout << "No Data Found" << endl;
+            }
+            break;
+        case 7:
+            shortest_distance();
+            break;
+        default:
+            break;
+        }
+        cout << "If you want to Continue then press 1" << endl;
+        cin >> choice;
+    }
+    while (choice == 1);
+
+    return 0;
+}
+
+void searchByLocation(Node* root, string location) 
+{
+    if (root != NULL) 
+    {
+        if (root->obj.location <= location)
+        {
+            MarqueeDisplay(root->obj);
+        }
+        searchByLocation(root->right, location);
+        searchByLocation(root->left, location);
+    }
+}
+
+void searchByPriceRange(Node* root, int price) 
+{
+    if (root != NULL) 
+    {
+        if (root->obj.price <= price) 
+        {
+            MarqueeDisplay(root->obj);
+        }
+        searchByPriceRange(root->right, price);
+        searchByPriceRange(root->left, price);
+    }
+}
+
+void MarqueeDisplay(MarqueeData obj) 
+{
+    read.open("Marquee_Info.txt",ios::app);
+    string s_temp;
+    int i_temp;
+    read >> i_temp;
+    cout << "Marquee Name :- ";
+    read >> s_temp;    
+    cout << s_temp << endl;
+    cout << "Marquee Location :- ";
+    read >> s_temp;      
+    cout<< s_temp << endl;
+    cout << "Marquee Price :- ";
+    read >> i_temp;     
+    cout << i_temp << endl;
+    cout << "Perhead Price :- ";
+    read >> i_temp;      
+    cout<<i_temp << endl;
+    cout << "Marquee Discount :- ";
+    read >> s_temp;     
+    cout << s_temp << endl;
+    read.close();
+}
+
+Node* searchByKey(Node* root, int key)
+{
+    if (root == NULL || root->key == key)
+        return root;
+    if (root->key < key)
+        return searchByKey(root->right, key);
+    return searchByKey(root->left, key);
+}
+
+void inputMarqueeObj(MarqueeData& obj) 
+{
+    write.open("Marquee_Info.txt", ios::app);
+    if (write.is_open())
+    {
+        cout << "Enter Marquee Name : " << endl;
+        cin>> obj.marqueeName;
+        write << obj.marqueeName << "  ";
+        cout << "Enter Marquee Location : " << endl;
+        cin>> obj.location;
+        write << obj.location<<"  ";
+        cout << "Enter Marquee Price : " << endl;
+        cin >> obj.price;
+        write << obj.price<<"  ";
+        cout << "Enter Perhead Price : " << endl;
+        cin >> obj.perheadPrice;
+        write << obj.perheadPrice<<"  ";
+        cout << "Enter Marquee Discount : " << endl;
+        cin >> obj.discount;
+        write << obj.discount;
+        write << endl;
+    }
+    else cout << "File Not Found.\n";
+    write.close();
+}
+
+int height(Node* N)
+{
+    if (N == NULL)
+        return 0;
+    return N->height;
+}
+
+int max(int a, int b)
+{
+    return (a > b) ? a : b;
+}
+
+Node* newNode(int key)
+{
+    Node* node = new Node();
+    node->key = key;
+    inputMarqueeObj(node->obj);
+    node->left = NULL;
+    node->right = NULL;
+    node->height = 1;
+    return(node);
+}
+
+Node* rightRotate(Node* y)
+{
+    Node* x = y->left;
+    Node* T2 = x->right;
+    x->right = y;
+    y->left = T2;
+    y->height = max(height(y->left),
+        height(y->right)) + 1;
+    x->height = max(height(x->left),
+        height(x->right)) + 1;
+    return x;
+}
+Node* leftRotate(Node* x)
+{
+    Node* y = x->right;
+    Node* T2 = y->left;
+    y->left = x;
+    x->right = T2;
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+    return y;
+}
+int getBalance(Node* N)
+{
+    if (N == NULL)
+        return 0;
+    return height(N->left) - height(N->right);
+}
+Node* insert(Node* node, int key)
+{
+    if (node == NULL)
+        return(newNode(key));
+    if (key < node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node;
+    node->height = 1 + max(height(node->left), height(node->right));
+    int balance = getBalance(node);
+    if (balance > 1 && key < node->left->key)
+        return rightRotate(node);
+    if (balance < -1 && key > node->right->key)
+        return leftRotate(node);
+    if (balance > 1 && key > node->left->key)
+    {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+    if (balance < -1 && key < node->right->key)
+    {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+    return node;
+}
+void Insert(Node* head, int val)
+{
+    Node* new_node = new Node;
+    new_node->data = val;
+    if (head == NULL)
+    {
+        new_node->next = head;
+        head = new_node;
+    }
+    else
+    {
+        Node* current = head;
+        while (current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = new_node;
+        new_node->next = NULL;
+    }
+}
+
+void print_id(Node* head)
+{
+    Node* current = new Node;
+    current = head;
+    cout << "\n\n\tLINK LIST\n\n";
+    while (current != NULL)
+    {
+        cout << current->data << " ";
+        current = current->next;
+    }
+    cout << endl;
+}
+
+void inOrder(Node* root)
+{
+    if (root != NULL)
+    {
+        inOrder(root->left);
+        cout << " ===========================================================================================================" << endl;
+        cout << "Id :- " << root->key << " "<<endl;
+        MarqueeDisplay(root->obj);
+        cout << " ===========================================================================================================" << endl;
+        inOrder(root->right);
+    }
+}
+
+int source;
+int vertices = 8;
+int i, j;
+
+int MIN(int distance[], bool visited[])
+{
+    int minimum = INT_MAX, min_index = 0;
+
+    for (int v = 0; v < vertices; v++)
+        if (visited[v] == false && distance[v] <= minimum)
+            minimum = distance[v], min_index = v;
+
+    return min_index;
+}
+
+int FOR_NODES()
+{
+    int S;
+    if (source == 1)
+        S = 0;
+    else if (source == 2)
+        S = 1;
+    else if (source == 3)
+        S = 2;
+    return S;
+}
+
+string places()
+{
+    string place;
+    if (source == 1)
+        place = "CanalRoad";
+    else if (source == 2)
+        place = "D-Ground";
+    else if (source == 3)
+        place = "Kohenoor";
+    return place;
+}
+
+void PRINT(int distance[])
+{
+    int x;
+    char vertex;
+
+    cout << "\n\tSource : " << places() << endl << endl;
+    cout << "Smallest distance from " << places() << endl << endl;
+    string M;
+    for (int i = 0; i < 8; i++)
+    {
+        if (i == 0)
+            M = "Canal Road";
+        else if (i == 1)
+            M = "D-Ground";
+        else if (i == 2)
+            M = "Kohenoor";
+        else if (i == 3)
+            M = "Dynasty";
+        else if (i == 4)
+            M = "ROTALTON";
+        else if (i == 5)
+            M = "Chaniot Palace";
+        else if (i == 6)
+            M = "ROYAL Marquee";
+        else if (i == 7)
+            M = "Silver Spoon";
+        cout << " " << M << "\t\t" << distance[i] << " km" << "\n";
+    }
+}
+
+void DIJKSTRA_ALGO(int S, int total_vertices, int graph[][8])
+{
+    int distance[8];
+    bool visited[8];
+
+    for (i = 0; i < 8; i++)
+        distance[i] = INT_MAX, visited[i] = false;
+
+    distance[S] = 0;
+
+    for (i = 0; i < 7; i++)
+    {
+        int min_distance = MIN(distance, visited);
+        visited[min_distance] = true;
+        for (i = 0; i < total_vertices; i++)
+
+            if (distance[min_distance] != INT_MAX && !visited[i] && graph[min_distance][i] && distance[min_distance] + graph[min_distance][i] < distance[i])
+                distance[i] = distance[min_distance] + graph[min_distance][i];
+    }
+    PRINT(distance);
+}
+
+void shortest_distance()
+{
+    /*int total_vertices;
+
+    cout << "\n  Enter total vertices : ";
+    cin >> total_vertices;*/
+
+    int graph[8][8];
+    int  from, to;
+    int weight, total_vertices;
+
+    read.open("GRAPH-.txt");
+
+    if (read.is_open())
+    {
+        read >> total_vertices;
+        V = total_vertices;
+
+        for (int i = 0; i < V; ++i)
+        {
+            for (int j = 0; j < V; ++j)
+            {
+                graph[i][j] = 0;
+            }
+        }
+        do
+        {
+            read >> from;
+            read >> to;
+            read >> weight;
+
+            graph[from][to] = graph[to][from] = weight;
+        }
+        while (!read.eof());
+        cout << endl;
+    }
+    else if (!read)
+    {
+        cout << "Cannot open file." << endl;
+    }
+    read.close();
+    cout << " Enter your location : \n1.Canal Road.\n2.D-ground.\n3.Kohenoor.\n";
+    cin >> source;
+    if (source == 1)
+        L();
+    else
+        DIJKSTRA_ALGO(FOR_NODES(), V, graph);
+}
+
+void L()
+{
+    cout << "\n\tSource : " << "CanalRoad" << endl << endl;
+    cout << "Smallest distance from " << "CanalRoad" << endl << endl;
+    string M;
+    int N;
+    for (int i = 0; i < 8; i++)
+    {
+        if (i == 0)
+        {
+            M = "Canal Road";
+            N = 0;
+        }
+        else if (i == 1)
+        {
+            M = "D-Ground";
+            N = 10;
+        }
+        else if (i == 2)
+        {
+            M = "Kohenoor";
+            N = 25;
+        }
+        else if (i == 3)
+        {
+            M = "Dynasty";
+            N = 34;
+        }
+        else if (i == 4)
+        {
+            M = "ROTALTON";
+            N = 7;
+        }
+        else if (i == 5)
+        {
+            M = "Chaniot Palace";
+            N = 12;
+        }
+        else if (i == 6)
+        {
+            M = "ROYAL Marquee";
+            N = 28;
+        }
+        else if (i == 7)
+        {
+            M = "Silver Spoon";
+            N = 67;
+        }
+        cout << " " << M << "\t\t" << N << " km" << "\n";
+    }
+}
